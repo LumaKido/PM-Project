@@ -10,6 +10,10 @@ app.set("view engine", "handlebars")
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+handlebars.registerHelper('eq', function(arg1, arg2, options) {
+    return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+});
+
 app.get("/", function (req, res) {
   res.render("primeira_pagina")
 })
