@@ -1,6 +1,7 @@
 const express = require("express")
 const app = express()
 const handlebars = require("express-handlebars").engine
+const hand = require('handlebars')
 const bodyParser = require("body-parser")
 const post = require("./models/post")
 
@@ -10,8 +11,8 @@ app.set("view engine", "handlebars")
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-handlebars.registerHelper('eq', function(arg1, arg2, options) {
-    return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+hand.registerHelper('eq', function(v1, v2, options) {
+  return v1 === v2;
 });
 
 app.get("/", function (req, res) {
