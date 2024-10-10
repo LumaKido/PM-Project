@@ -1,19 +1,12 @@
 package com.example.appfirebase
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
-import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -21,22 +14,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.unit.dp
 import com.example.appfirebase.ui.theme.AppFirebaseTheme
-import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 
 class MainActivity : ComponentActivity() {
-    val db = Firebase.firestore
+    private val db = FirebaseFirestore.getInstance()
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
-                ){
+                ) {
                     App(db)
                 }
             }
@@ -55,140 +42,107 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
 fun App(db: FirebaseFirestore) {
-    var nome by remember {
-        mutableStateOf("")
-    }
-    var telefone by remember {
-        mutableStateOf("")
-    }
+    var nome by remember { mutableStateOf("") }
+    var telefone by remember { mutableStateOf("") }
+    val clientes = remember { mutableStateListOf<Client>() }
 
     Column(
         Modifier
             .fillMaxWidth()
-    ){
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ){
-        }
-        Row(
-            Modifier
-                .fillMaxWidth(),
-            Arrangement.Center
-        ){
-            Text(text = "App Firebase Firestore")
-        }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ){
+            .padding(10.dp)
+    ) {
+        Text(text = "App Firebase Firestore", modifier = Modifier.align(Alignment.CenterHorizontally))
 
-        }
-        Row(
-            Modifier
-                .fillMaxWidth()
-        ){
-            Column(
-                Modifier
-                    .fillMaxWidth(0.3f)
-            ){
-                Text(text = "Nome:")
-            }
-            Column(
+        TextFieldWithLabel(label = "Nome:", value = nome, onValueChange = { nome = it })
+        TextFieldWithLabel(label = "Telefone:", value = telefone, onValueChange = { telefone = it })
 
-            ){
-                TextField(
-                    value = nome,
-                    onValueChange = {nome = it}
-                )
-            }
-        }
-        Row(
-            Modifier
-                .fillMaxWidth()
-        ){
-            Column(
-                Modifier
-                    .fillMaxWidth(0.3f)
-            ){
-                Text(text = "Telefone:")
-            }
-            Column(
-
-            ){
-                TextField(
-                    value = telefone,
-                    onValueChange = {telefone = it}
-                )
-            }
-        }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ){
-
-        }
-        Row(
-            Modifier
-                .fillMaxWidth(),
-            Arrangement.Center
-        ){
-            Button(onClick = {
-                val pessoas = hashMapOf(
-                    "nome" to nome,
-                    "telefone" to telefone
-                )
-
+        Button(
+            onClick = {
+                val pessoas = hashMapOf("nome" to nome, "telefone" to telefone)
                 db.collection("Clientes").add(pessoas)
                     .addOnSuccessListener { documentReference ->
-                        Log.d(TAG, "DocumentSnapshot written ID: ${documentReference.id}") }
-                    .addOnFailureListener{ e ->
-                        Log.w(TAG, "Error adding document", e)}
-            }) {
-                Text(text = "Cadastrar")
-            }
+                        Log.d("TAG", "DocumentSnapshot written ID: ${documentReference.id}")
+                        fetchClientes(db, clientes)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w("TAG", "Error adding document", e)
+                    }
+            },
+            modifier = Modifier.padding(vertical = 10.dp)
+        ) {
+            Text(text = "Cadastrar")
         }
-        Row (
-            Modifier
-                .fillMaxWidth()
-        ){
-            Column(
 
-            ) {
-                val clientes = mutableStateListOf<HashMap<String, String>>()
-                db.collection("Clientes")
-                    .get()
-                    .addOnSuccessListener { documents ->
-                        for(document in documents){
-                            val lista = hashMapOf(
-                                "nome" to "${document.data.get("nome")}",
-                                "telefone" to "${document.data.get("telefone")}"
-                            )
-                            clientes.add(lista)
+        // Fetch clients
+        LaunchedEffect(Unit) {
+            fetchClientes(db, clientes)
+        }
+
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(clientes) { cliente ->
+                ClientRow(cliente) { clientId ->
+                    db.collection("Clientes").document(clientId).delete()
+                        .addOnSuccessListener {
+                            Log.d("TAG", "DocumentSnapshot successfully deleted!")
+                            clientes.remove(cliente)
                         }
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.w(TAG, "Error getting documents: ", exception)
-                    }
-                LazyColumn(modifier = Modifier.fillMaxWidth()){
-                    items(clientes) { cliente ->
-                        Row(modifier = Modifier.fillMaxWidth()){
-                            Column (modifier = Modifier.weight(0.5f)){
-                                Text(text = cliente["nome"] ?: "--")
-                            }
-                            Column (modifier = Modifier.weight(0.5f)){
-                                Text(text = cliente["telefone"] ?: "--")
-                            }
+                        .addOnFailureListener { e ->
+                            Log.w("TAG", "Error deleting document", e)
                         }
-                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun TextFieldWithLabel(label: String, value: String, onValueChange: (String) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+    ) {
+        Text(text = label)
+        TextField(value = value, onValueChange = onValueChange)
+    }
+}
+
+@Composable
+fun ClientRow(cliente: Client, onDelete: (String) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.weight(0.5f)) {
+            Text(text = cliente.nome)
+        }
+        Column(modifier = Modifier.weight(0.5f)) {
+            Text(text = cliente.telefone)
+        }
+        Column(modifier = Modifier.weight(0.5f)) {
+            Button(onClick = { onDelete(cliente.id) }) {
+                Text(text = "Deletar")
+            }
+        }
+    }
+}
+
+data class Client(val id: String, val nome: String, val telefone: String)
+
+fun fetchClientes(db: FirebaseFirestore, clientes: SnapshotStateList<Client>) {
+    clientes.clear() // Clear the list before fetching new data
+    db.collection("Clientes")
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                val client = Client(
+                    id = document.id,
+                    nome = document.getString("nome") ?: "--",
+                    telefone = document.getString("telefone") ?: "--"
+                )
+                clientes.add(client)
+            }
+        }
+        .addOnFailureListener { exception ->
+            Log.w("TAG", "Error getting documents: ", exception)
+        }
 }
