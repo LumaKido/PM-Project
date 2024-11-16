@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "1093697096552",
     "project_id": "autenticator-33d4b",
-    "storage_bucket": "autenticator-33d4b.appspot.com"
+    "storage_bucket": "autenticator-33d4b.firebasestorage.app"
   },
   "client": [
     {
