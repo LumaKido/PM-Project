@@ -1,0 +1,56 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/backgroundColor">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecione uma data"
+        android:textSize="18sp"
+        android:textColor="@color/textColorPrimary"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:id="@+id/dataHoraInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/dd_mm_aaaa"
+        android:inputType="none"
+        android:drawableEnd="@drawable/ic_calendar"
+        android:backgroundTint="@color/primaryColor"
+        android:textColor="@color/textColorPrimary"
+        android:padding="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/verificarButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Buscar"
+        android:backgroundTint="@color/primaryColor"
+        android:textColor="@color/textColorSecondary"
+        android:padding="12dp" />
+
+    <Button
+        android:id="@+id/verTodosButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Ver Todos"
+        android:backgroundTint="@color/secondaryColor"
+        android:textColor="@color/textColorPrimary"
+        android:padding="12dp" />
+
+    <TextView
+        android:id="@+id/resultTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="@color/textColorPrimary" />
+</LinearLayout>
