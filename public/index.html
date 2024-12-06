@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Umidade e Temperatura</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 30px;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-size: 16px;
+            color: #555;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        input[type="date"]:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Espaçamento entre os botões */
+            margin-top: 20px;
+        }
+
+        button {
+            width: auto; /* Ajusta ao conteúdo */
+            min-width: 120px; /* Largura mínima */
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button#verificarButton {
+            background-color: #007BFF;
+            color: #ffffff;
+        }
+
+        button#verTodosButton {
+            background-color: #28A745;
+            color: #ffffff;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            opacity: 0.9;
+        }
+
+        button#verificarButton:hover {
+            background-color: #0056b3;
+        }
+
+        button#verTodosButton:hover {
+            background-color: #218838;
+        }
+
+        button i {
+            margin-right: 8px;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f1f8ff;
+            border: 1px solid #cce7ff;
+            color: #333;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            color: #007BFF;
+        }
+
+        .result ul {
+            padding-left: 20px;
+        }
+
+        .result ul li {
+            margin-bottom: 10px;
+        }
+
+        .result ul li strong {
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .button-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Controle de Umidade e Temperatura</h1>
+
+    <div class="container">
+        <label for="dataHora">Selecione uma data:</label>
+        <input type="date" id="dataHora">
+
+        <div class="button-container">
+            <button id="verificarButton"><i class="fas fa-search"></i> Verificar</button>
+            <button id="verTodosButton"><i class="fas fa-eye"></i> Ver Todos</button>
+        </div>
+
+        <div id="resultado" class="result"></div>
+    </div>
+
+    <script>
+        // Evento para o botão "Verificar"
+        document.getElementById("verificarButton").addEventListener("click", function() {
+            const dataHora = document.getElementById("dataHora").value;
+
+            if (!dataHora) {
+                alert("Por favor, selecione uma data.");
+                return;
+            }
+
+            fetch('/verificar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dataHora: dataHora })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados:', error);
+                document.getElementById("resultado").innerHTML = `<strong>Erro ao buscar dados. Tente novamente mais tarde.</strong>`;
+            });
+        });
+
+        // Evento para o botão "Ver Todos"
+        document.getElementById("verTodosButton").addEventListener("click", function() {
+            fetch('/ver-todos')
+            .then(response => response.json())
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar todos os dados:', error);
+                document.getElementById("resultado").innerHTML = `<strong>Erro ao buscar dados. Tente novamente mais tarde.</strong>`;
+            });
+        });
+
+        // Função para exibir os resultados
+        function displayResults(data) {
+            const resultadosDiv = document.getElementById("resultado");
+            if (data.message) {
+                resultadosDiv.innerHTML = `<strong>${data.message}</strong>`;
+            } else {
+                let resultHTML = "<h3>Dados encontrados:</h3><ul>";
+                data.forEach(item => {
+                    resultHTML += `<li><strong>Data:</strong> ${item.dataHora} | <strong>Temperatura:</strong> ${item.temperatura}°C | <strong>Umidade:</strong> ${item.umidade}%</li>`;
+                });
+                resultHTML += "</ul>";
+                resultadosDiv.innerHTML = resultHTML;
+            }
+        }
+    </script>
+
+</body>
+</html>
